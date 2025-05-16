@@ -41,6 +41,7 @@ fun VideoScreen(navController: NavController, detailScreenViewmodel: DetailScree
 @Composable
 fun WebcamView(imageUrl: String, description: String) {
     var updatedUrl by remember { mutableStateOf(imageUrl) }
+    var imageLoadFailed by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         while (true) {
@@ -48,26 +49,41 @@ fun WebcamView(imageUrl: String, description: String) {
             kotlinx.coroutines.delay(60_000) // Wait for 1 minute
         }
     }
-    Column(){
-        AsyncImage(
-            model = updatedUrl,
-            contentDescription = description,
-            alignment = Alignment.TopCenter,
-            contentScale = androidx.compose.ui.layout.ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-                .width(400.dp)
-                .padding(8.dp)
-        )
+
+    Column {
+        if (imageLoadFailed) {
+            // Display a fallback message or placeholder when the image fails to load
+            Text(
+                text = "Image not found",
+                color = Color.Red,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .background(Color(0xFF1a4e82))
+                    .padding(16.dp),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        } else {
+            AsyncImage(
+                model = updatedUrl,
+                contentDescription = description,
+                alignment = Alignment.TopCenter,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .width(400.dp)
+                    .padding(8.dp),
+                onError = { imageLoadFailed = true } // Set flag if image fails to load
+            )
+        }
         Text(
             text = description,
             color = Color.White,
             modifier = Modifier
                 .background(Color(0xFF153f69))
-                .padding(8.dp).padding(bottom=8.dp),
+                .padding(8.dp)
+                .padding(bottom = 8.dp),
             textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
     }
-
 
 }

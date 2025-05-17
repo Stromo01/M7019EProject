@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,14 +33,36 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
+import kotlinx.coroutines.runBlocking
 
 @Composable
-fun MainScreen(navController: NavHostController,
-               weatherData: List<DailyWeather>, detailScreenViewmodel: DetailScreenViewmodel
+fun MainScreen(
+    navController: NavHostController,
+    weatherData: List<DailyWeather>,
+    detailScreenViewmodel: DetailScreenViewmodel,
+    networkViewModel: NetworkViewModel
 ) {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF153f69)).padding(8.dp).padding(bottom=48.dp)) {
+    val isNetworkConnected by networkViewModel.isNetworkConnected.collectAsState()
+    var refreshedWeatherData by remember { mutableStateOf(weatherData) }
+
+    LaunchedEffect(isNetworkConnected) {
+        if (isNetworkConnected) {
+            refreshedWeatherData = runBlocking {
+                val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+                fetchAndTransformWeatherData(apiUrl)
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF153f69))
+            .padding(8.dp)
+            .padding(bottom = 48.dp)
+    ) {
         Banner("Luleå", detailScreenViewmodel, navController)
-        DisplayWeather(weatherData, navController, detailScreenViewmodel)
+        DisplayWeather(refreshedWeatherData, navController, detailScreenViewmodel)
     }
 }
 

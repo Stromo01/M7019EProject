@@ -5,30 +5,16 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
+import androidx.compose.ui.Modifier
 
 class MainActivity : ComponentActivity() {
 
@@ -43,41 +29,23 @@ class MainActivity : ComponentActivity() {
                 fetchAndTransformWeatherData(apiUrl)
             }
             val detailScreenViewmodel = DetailScreenViewmodel()
+            val networkViewModel: NetworkViewModel = viewModel() // Create NetworkViewModel instance
+
             M7019EProjectTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     NavHost(navController = navController, startDestination = "main") {
                         composable("main") {
-                            MainScreen(navController, weatherData, detailScreenViewmodel)
+                            MainScreen(navController, weatherData, detailScreenViewmodel, networkViewModel)
                         }
                         composable("weather_detail") {
-                            DetailScreen(navController, detailScreenViewmodel)
+                            DetailScreen(navController, detailScreenViewmodel, networkViewModel)
                         }
                         composable("video") {
-                            VideoScreen(navController, detailScreenViewmodel)
+                            VideoScreen(navController, detailScreenViewmodel, networkViewModel)
                         }
                     }
                 }
             }
         }
-    }
-}
-
-
-
-
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    M7019EProjectTheme {
-        Greeting("Android")
     }
 }

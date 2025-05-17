@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,15 +26,29 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 
 @Composable
-fun VideoScreen(navController: NavController, detailScreenViewmodel: DetailScreenViewmodel) {
+fun VideoScreen(
+    navController: NavController,
+    detailScreenViewmodel: DetailScreenViewmodel,
+    networkViewModel: NetworkViewModel
+) {
+    val isNetworkConnected by networkViewModel.isNetworkConnected.collectAsState()
+    var refreshTrigger by remember { mutableStateOf(0) }
+
+    LaunchedEffect(isNetworkConnected) {
+        if (isNetworkConnected) {
+            refreshTrigger++ // Increment to trigger recomposition of webcam views
+        }
+    }
+
     Column(
         modifier = Modifier
-            .background(Color(0xFF153f69)).verticalScroll(rememberScrollState()),
+            .background(Color(0xFF153f69))
+            .verticalScroll(rememberScrollState())
     ) {
         Banner("Luleå", detailScreenViewmodel, navController)
-        WebcamView("https://www2.lulea.se/web-camera/stadshuset/stadshus.jpg", "Luleå Stadshus")
-        WebcamView("https://www2.lulea.se/web-camera/ormberget/imageorm.jpg", "Luleå Ormberget")
-        WebcamView("https://webcam.vackertvader.se/39626801/latest.jpg", "Norra Sunderbyn")
+        WebcamView("https://www2.lulea.se/web-camera/stadshuset/stadshus.jpg?refresh=$refreshTrigger", "Luleå Stadshus")
+        WebcamView("https://www2.lulea.se/web-camera/ormberget/imageorm.jpg?refresh=$refreshTrigger", "Luleå Ormberget")
+        WebcamView("https://webcam.vackertvader.se/39626801/latest.jpg?refresh=$refreshTrigger", "Norra Sunderbyn")
         Spacer(modifier = Modifier.height(60.dp))
     }
 }

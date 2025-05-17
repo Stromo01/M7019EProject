@@ -23,24 +23,46 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import androidx.compose.material3.Button
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun DetailScreen(
     navController: NavController,
-    detailScreenViewmodel: DetailScreenViewmodel
+    detailScreenViewmodel: DetailScreenViewmodel,
+    networkViewModel: NetworkViewModel
 ) {
+    val isNetworkConnected = networkViewModel.isNetworkConnected.collectAsState().value
     val selectedDay = detailScreenViewmodel.selectedDay
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF153f69)).padding(8.dp).padding(bottom=48.dp).verticalScroll(rememberScrollState())) {
+
+    LaunchedEffect(isNetworkConnected) {
+        if (isNetworkConnected) {
+            selectedDay.value?.let { day ->
+                val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+                val refreshedData = runBlocking { fetchAndTransformWeatherData(apiUrl) }
+                val updatedDay = refreshedData.find { it.date == day.date }
+                if (updatedDay != null) {
+                    detailScreenViewmodel.selectedDay.value = updatedDay
+                }
+            }
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF153f69))
+            .padding(8.dp)
+            .padding(bottom = 48.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         selectedDay.value?.let { day ->
             Banner("Luleå " + day.date, detailScreenViewmodel, navController)
             DayItem(weatherData = day, detail = true)
         }
     }
-
 }
-
-
-
 
 
 @Preview

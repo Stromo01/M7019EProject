@@ -1,5 +1,6 @@
 package com.example.m7019e_project
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,11 +35,29 @@ import androidx.navigation.NavHostController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 
 @Composable
-fun MainScreen(navController: NavHostController,
-               weatherData: List<DailyWeather>, detailScreenViewmodel: DetailScreenViewmodel
+fun MainScreen(
+    navController: NavController,
+    weatherData: List<DailyWeather>,
+    detailScreenViewmodel: DetailScreenViewmodel
 ) {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF153f69)).padding(8.dp).padding(bottom=48.dp)) {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
+    val currentTime = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))
+    val latestWeatherDataTime = sharedPreferences.getString("dataFetchTime", currentTime)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF153f69))
+            .padding(8.dp)
+            .padding(bottom = 48.dp)
+    ) {
         Banner("Luleå", detailScreenViewmodel, navController)
+        Text(
+            text = "Latest Weather Data: $latestWeatherDataTime",
+            color = Color.White,
+            modifier = Modifier.padding(8.dp)
+        )
         DisplayWeather(weatherData, navController, detailScreenViewmodel)
     }
 }

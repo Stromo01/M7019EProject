@@ -35,6 +35,10 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Schedule periodic weather updates
+        scheduleWeatherUpdates(this)
+
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()

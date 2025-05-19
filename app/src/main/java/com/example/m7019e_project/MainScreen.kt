@@ -11,12 +11,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
+import kotlinx.coroutines.runBlocking
 
 @Composable
 fun MainScreen(
@@ -43,8 +49,10 @@ fun MainScreen(
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
     val currentTime = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))
-    val latestWeatherDataTime = sharedPreferences.getString("dataFetchTime", currentTime)
-
+    var textState by remember { mutableStateOf("Luleå") }
+    var expanded by remember { mutableStateOf(false) }
+    var weatherDataState by remember { mutableStateOf(weatherData) }
+    val locations = listOf("Luleå", "Stockholm", "Gothenburg", "Malmö")
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -52,50 +60,109 @@ fun MainScreen(
             .padding(8.dp)
             .padding(bottom = 48.dp)
     ) {
-        Banner("Luleå", detailScreenViewmodel, navController)
-        Text(
-            text = "Latest Weather Data: $latestWeatherDataTime",
-            color = Color.White,
-            modifier = Modifier.padding(8.dp)
+        MainBanner(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            textState = textState,
+            onTextStateChange = { textState = it },
+            locations = locations,
+            navController = navController,
+            onWeatherDataChange = { weatherDataState = it },
+            detailScreenViewmodel = detailScreenViewmodel
         )
-        DisplayWeather(weatherData, navController, detailScreenViewmodel)
+        DisplayWeather(weatherDataState, navController, detailScreenViewmodel)
     }
 }
 
 
 @Composable
-fun Banner(
-    title:String,
-    detailScreenViewmodel: DetailScreenViewmodel,
-    nav: NavController
+fun MainBanner(
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    textState: String,
+    onTextStateChange: (String) -> Unit,
+    locations: List<String>,
+    navController: NavController
+    , onWeatherDataChange: (List<DailyWeather>) -> Unit,
+    detailScreenViewmodel: DetailScreenViewmodel
 ) {
-    Column(){
-        Row( // Banner div design
+    Row(
+        modifier = Modifier
+            .padding(top=45.dp),
+    ){
+    Box(modifier = Modifier.padding(8.dp)) {
+        Button(
+            onClick = { onExpandedChange(true) },
+            shape = RoundedCornerShape(8.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1a4e82),
+                contentColor = Color.White
+            ),
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 45.dp, start = 20.dp, end = 24.dp, bottom = 15.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .width(200.dp)
+
+
         ) {
             Text(
-                text = title,
-                fontSize = 28.sp,
+                text = textState,
                 color = Color.White,
-                textAlign = TextAlign.Center
+                fontSize = 20.sp
             )
-            Button(
-                onClick = {
-                    nav.navigate("video")
-                },
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(text = "Webcams")
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { onExpandedChange(false) }
+        ) {
+            locations.forEach { location ->
+                DropdownMenuItem(
+                    text = { Text(location) },
+                    onClick = {
+                        onTextStateChange(location)
+                        onExpandedChange(false)
+                        onTextStateChange(location)
+                        onExpandedChange(false)
+                        detailScreenViewmodel.selectedLocation.value = location
+                        runBlocking {
+                            val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(location)}&longitude=${getLongitude(location)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+                            onWeatherDataChange(fetchAndTransformWeatherData(apiUrl))
+                        }
+                    }
+                )
             }
         }
+    }
+        Button(
+            onClick = {
+                navController.navigate("video")
+            },
+            modifier = Modifier
+                .padding(8.dp)
+        ) {
+        Text(text = "Video")
+    }
     }
 }
 
 
+fun getLatitude(location: String): Double {
+    return when (location) {
+        "Luleå" -> 65.5841
+        "Stockholm" -> 59.3293
+        "Gothenburg" -> 57.7089
+        "Malmö" -> 55.6050
+        else -> 0.0
+    }
+}
+
+fun getLongitude(location: String): Double {
+    return when (location) {
+        "Luleå" -> 22.1547
+        "Stockholm" -> 18.0686
+        "Gothenburg" -> 11.9746
+        "Malmö" -> 13.0038
+        else -> 0.0
+    }
+}
 @Composable
 fun DisplayWeather(weatherData:List<DailyWeather>, navController: NavController,
                    detailScreenViewmodel: DetailScreenViewmodel) {
@@ -125,6 +192,7 @@ fun DayItem(
                 if (!detail) {
                     Modifier.clickable {
                         detailScreenViewmodel?.selectedDay?.value = weatherData
+
                         navController?.navigate("weather_detail")
                     }
                 } else {

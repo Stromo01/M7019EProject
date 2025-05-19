@@ -30,7 +30,7 @@ fun VideoScreen(navController: NavController, detailScreenViewmodel: DetailScree
         modifier = Modifier
             .background(Color(0xFF153f69)).verticalScroll(rememberScrollState()),
     ) {
-        Banner("Luleå", detailScreenViewmodel, navController)
+        Banner("Luleå", "",detailScreenViewmodel, navController)
         WebcamView("https://www2.lulea.se/web-camera/stadshuset/stadshus.jpg", "Luleå Stadshus")
         WebcamView("https://www2.lulea.se/web-camera/ormberget/imageorm.jpg", "Luleå Ormberget")
         WebcamView("https://webcam.vackertvader.se/39626801/latest.jpg", "Norra Sunderbyn")

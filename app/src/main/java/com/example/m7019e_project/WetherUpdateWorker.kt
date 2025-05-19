@@ -10,6 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 import com.example.m7019e_project.fetchAndTransformWeatherData
+import com.example.m7019e_project.MainActivity
 
 class WeatherUpdateWorker(
     context: Context,
@@ -40,6 +41,7 @@ class WeatherUpdateWorker(
             saveWeatherDataToPreferences(weatherData.toString(), currentTime) // Save data and formatted time
             weatherData.toString()
         }
+        //MainActivity.reloadUI()
     }
 
     private fun saveWeatherDataToPreferences(data: String, timestamp: String) {

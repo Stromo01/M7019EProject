@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,16 +30,41 @@ import androidx.navigation.compose.rememberNavController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
+//import com.example.m7019e_project.NetworkConnectionHandler
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var networkConnectionHandler: NetworkConnectionHandler
+    private var isNetworkAvailable = mutableStateOf(true)
+
+
 
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Initialize NetworkConnectionHandler
+        networkConnectionHandler = NetworkConnectionHandler(
+            context = this,
+            onNetworkAvailable = { isNetworkAvailable.value = true },
+            onNetworkLost = { isNetworkAvailable.value = false }
+        )
+        networkConnectionHandler.startListening()
+
+        isNetworkAvailable.value = true // To update
+        val networkStatus = isNetworkAvailable.value // To read
+
         // Schedule periodic weather updates
         scheduleWeatherUpdates(this)
 
+        setupUI()
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        networkConnectionHandler.stopListening()
+    }
+
+    private fun setupUI() {
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
@@ -63,6 +89,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+    fun reloadUI(){
+        setupUI()
     }
 }
 

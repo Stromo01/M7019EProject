@@ -51,8 +51,6 @@ class MainActivity : ComponentActivity() {
         )
         networkConnectionHandler.startListening()
 
-        isNetworkAvailable.value = true // To update
-        val networkStatus = isNetworkAvailable.value // To read
 
         // Schedule periodic weather updates
         scheduleWeatherUpdates(this)
@@ -75,23 +73,50 @@ class MainActivity : ComponentActivity() {
             val detailScreenViewmodel = DetailScreenViewmodel()
             M7019EProjectTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    NavHost(navController = navController, startDestination = "main") {
-                        composable("main") {
-                            MainScreen(navController, weatherData, detailScreenViewmodel)
+                    if (isNetworkAvailable.value){
+                        NavHost(navController = navController, startDestination = "main") {
+                            composable("main") {
+                                MainScreen(navController, weatherData, detailScreenViewmodel)
+                            }
+                            composable("weather_detail") {
+                                DetailScreen(navController, detailScreenViewmodel)
+                            }
+                            composable("video") {
+                                VideoScreen(navController, detailScreenViewmodel)
+                            }
                         }
-                        composable("weather_detail") {
-                            DetailScreen(navController, detailScreenViewmodel)
-                        }
-                        composable("video") {
-                            VideoScreen(navController, detailScreenViewmodel)
-                        }
+                    }
+                    else{
+                        NoInternetScreen()
                     }
                 }
             }
         }
     }
-    fun reloadUI(){
-        setupUI()
+    @Composable
+    fun NoInternetScreen(){
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "No Internet Connection",
+                fontSize = 24.sp,
+                color = Color.Red,
+                textAlign = TextAlign.Center
+            )
+            Button(
+                onClick = {
+                    // Retry logic or show a message
+                },
+                modifier = Modifier.padding(top = 16.dp)
+            ) {
+                Text(text = "Retry")
+            }
+        }
     }
 }
 

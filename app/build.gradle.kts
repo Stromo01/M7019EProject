@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     //id("org.jetbrains.kotlin.plugin.serialization") version "1.9.10"
     kotlin("plugin.serialization") version "1.9.10"
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -68,4 +69,13 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+    val room_version = "2.7.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    ksp("androidx.room:room-compiler:$room_version")
+    implementation("androidx.room:room-ktx:$room_version")
+    implementation("androidx.room:room-rxjava2:$room_version")
+    implementation("androidx.room:room-rxjava3:$room_version")
+    implementation("androidx.room:room-guava:$room_version")
+    testImplementation("androidx.room:room-testing:$room_version")
+    implementation("androidx.room:room-paging:$room_version")
 }

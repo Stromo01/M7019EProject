@@ -23,6 +23,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,6 +36,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
@@ -44,7 +46,8 @@ import kotlinx.coroutines.runBlocking
 fun MainScreen(
     navController: NavController,
     weatherData: List<DailyWeather>,
-    detailScreenViewmodel: DetailScreenViewmodel
+    detailScreenViewmodel: DetailScreenViewmodel,
+    isNetworkAvailable: Boolean
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
@@ -53,6 +56,17 @@ fun MainScreen(
     var expanded by remember { mutableStateOf(false) }
     var weatherDataState by remember { mutableStateOf(weatherData) }
     val locations = listOf("Luleå", "Stockholm", "Gothenburg", "Malmö")
+    val weatherViewModel: WeatherViewModel = viewModel()
+
+    LaunchedEffect(isNetworkAvailable) {
+        val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+        if(isNetworkAvailable == true){
+            weatherViewModel.clearCache();
+            weatherDataState = weatherViewModel.getWeather(apiUrl)
+        }else{
+            weatherDataState = weatherViewModel.getCachedWeather()
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()

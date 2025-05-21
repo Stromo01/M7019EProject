@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
                     if (isNetworkAvailable.value){
                         NavHost(navController = navController, startDestination = "main") {
                             composable("main") {
-                                MainScreen(navController, weatherData, detailScreenViewmodel)
+                                MainScreen(navController, weatherData, detailScreenViewmodel,isNetworkAvailable.value)
                             }
                             composable("weather_detail") {
                                 DetailScreen(navController, detailScreenViewmodel)

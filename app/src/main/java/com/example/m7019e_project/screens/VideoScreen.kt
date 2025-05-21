@@ -26,6 +26,7 @@ import coil.compose.AsyncImage
 
 @Composable
 fun VideoScreen(navController: NavController, detailScreenViewmodel: DetailScreenViewmodel) {
+
     Column(
         modifier = Modifier
             .background(Color(0xFF153f69)).verticalScroll(rememberScrollState()),

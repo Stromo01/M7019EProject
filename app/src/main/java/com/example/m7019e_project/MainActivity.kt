@@ -54,10 +54,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WorkManager.getInstance(this).cancelAllWork()
+
         networkReceiver = NetworkChangeReceiver()
         val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
         registerReceiver(networkReceiver, intentFilter)
-
 
         setupUI()
     }
@@ -79,6 +79,18 @@ class MainActivity : ComponentActivity() {
                 fetchAndTransformWeatherData(apiUrl)
             }
             val detailScreenViewmodel = DetailScreenViewmodel()
+
+            val shouldReload by ScreenReloadState.shouldReload
+
+            LaunchedEffect(shouldReload) {
+                if (shouldReload) {
+                    ScreenReloadState.shouldReload.value = false // Reset the state
+                    val currentRoute = navController.currentBackStackEntry?.destination?.route
+                    navController.popBackStack() // Pop the back stack to the main screen
+                    currentRoute?.let { navController.navigate(it) } // Navigate to the current screen
+                }
+            }
+
             M7019EProjectTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
 

@@ -49,14 +49,14 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        WorkManager.getInstance(this).cancelAllWork()
 
         // Worker with no network required
         val noNetworkConstraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
             .build()
 
-        val noNetworkWorkRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
+        val noNetworkWorkRequest = OneTimeWorkRequestBuilder<disconnectWorker>()
             .setConstraints(noNetworkConstraints)
             .setInputData(
                 androidx.work.Data.Builder()
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val networkRequiredWorkRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
+        val networkRequiredWorkRequest = OneTimeWorkRequestBuilder<connectWorker>()
             .setConstraints(networkRequiredConstraints)
             .setInputData(
                 androidx.work.Data.Builder()
@@ -92,7 +92,8 @@ class MainActivity : ComponentActivity() {
         )
 
         WorkManager.getInstance(this).enqueue(networkRequiredWorkRequest)
-        scheduleWeatherUpdates(this)
+        scheduleConnectWorker(this)
+        scheduleDisconnectWorker(this)
         setupUI()
     }
 

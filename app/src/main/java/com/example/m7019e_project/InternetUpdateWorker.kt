@@ -15,40 +15,53 @@ object ScreenReloadState {
     val shouldReload = mutableStateOf(false)
 }
 
-class WeatherUpdateWorker(
+
+class disconnectWorker(
     context: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
-        val constraintType = inputData.getString("constraintType") ?: "UNKNOWN"
-        Log.d("WeatherUpdateWorker", "Constraint type: $constraintType")
-        if (constraintType == "CONNECTED") {
-            // Notify the app to reload the current screen
-            Log.d("WeatherUpdateWorker", "Network is connected, reloading screen")
-            ScreenReloadState.shouldReload.value = true
-        } else if (constraintType == "NOT_REQUIRED") {
-            val sharedPreferences = applicationContext.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
-            sharedPreferences.edit()
-                .putString("lastConstraintType", constraintType)
-                .apply()
-        } else {
-            return Result.failure()
-        }
-
+        Log.d("disconnectWorker", "Network is disconnected, saving state")
+        val sharedPreferences = applicationContext.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit()
+            .apply()
         return Result.success()
     }
 }
 
+class connectWorker(
+    context: Context,
+    workerParams: WorkerParameters
+) : CoroutineWorker(context, workerParams) {
 
-// Schedule the worker
-fun scheduleWeatherUpdates(context: Context) {
-    val workRequest = PeriodicWorkRequestBuilder<WeatherUpdateWorker>(1, TimeUnit.MINUTES)
+    override suspend fun doWork(): Result {
+        Log.d("connectWorker", "Network is connected, reloading screen")
+        ScreenReloadState.shouldReload.value = true
+        return Result.success()
+    }
+}
+
+fun scheduleConnectWorker(context: Context) {
+    val workRequest = PeriodicWorkRequestBuilder<connectWorker>(15, TimeUnit.SECONDS)
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        "WeatherUpdateWorker",
-        ExistingPeriodicWorkPolicy.KEEP, // Ensures only one periodic worker runs
+        "connectWorker",
+        ExistingPeriodicWorkPolicy.UPDATE, // Ensures only one periodic worker runs
         workRequest
     )
 }
+
+fun scheduleDisconnectWorker(context: Context) {
+    val workRequest = PeriodicWorkRequestBuilder<disconnectWorker>(15, TimeUnit.SECONDS)
+        .build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "disconnectWorker",
+        ExistingPeriodicWorkPolicy.UPDATE, // Ensures only one periodic worker runs
+        workRequest
+    )
+}
+
+

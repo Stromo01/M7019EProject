@@ -9,7 +9,10 @@ import androidx.work.WorkerParameters
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.mutableStateOf
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 
 object ScreenReloadState {
     val shouldReload = mutableStateOf(false)
@@ -43,8 +46,14 @@ class connectWorker(
 }
 
 fun scheduleConnectWorker(context: Context) {
-    val workRequest = PeriodicWorkRequestBuilder<connectWorker>(15, TimeUnit.SECONDS)
+    val networkRequiredConstraints = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
+
+    val workRequest = PeriodicWorkRequestBuilder<connectWorker>(15, TimeUnit.SECONDS)
+        .setConstraints(networkRequiredConstraints)
+        .build()
+
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         "connectWorker",
@@ -54,7 +63,12 @@ fun scheduleConnectWorker(context: Context) {
 }
 
 fun scheduleDisconnectWorker(context: Context) {
+    val noNetworkConstraints = Constraints.Builder()
+        .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+        .build()
+
     val workRequest = PeriodicWorkRequestBuilder<disconnectWorker>(15, TimeUnit.SECONDS)
+        .setConstraints(noNetworkConstraints)
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(

@@ -51,47 +51,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WorkManager.getInstance(this).cancelAllWork()
 
-        // Worker with no network required
-        val noNetworkConstraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .build()
 
-        val noNetworkWorkRequest = OneTimeWorkRequestBuilder<disconnectWorker>()
-            .setConstraints(noNetworkConstraints)
-            .setInputData(
-                androidx.work.Data.Builder()
-                    .putString("constraintType", "NOT_REQUIRED") // Pass correct constraintType
-                    .build()
-            )
-            .build()
 
-        WorkManager.getInstance(this).enqueueUniqueWork(
-            "NoNetworkWorker",
-            ExistingWorkPolicy.KEEP, // Ensures only one instance of this worker runs
-            noNetworkWorkRequest
-        )
-
-        // Worker with network required
-        val networkRequiredConstraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-
-        val networkRequiredWorkRequest = OneTimeWorkRequestBuilder<connectWorker>()
-            .setConstraints(networkRequiredConstraints)
-            .setInputData(
-                androidx.work.Data.Builder()
-                    .putString("constraintType", "CONNECTED") // Pass correct constraintType
-                    .build()
-            )
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniqueWork(
-            "NetworkRequiredWorker",
-            ExistingWorkPolicy.KEEP, // Ensures only one instance of this worker runs
-            networkRequiredWorkRequest
-        )
-
-        WorkManager.getInstance(this).enqueue(networkRequiredWorkRequest)
         scheduleConnectWorker(this)
         scheduleDisconnectWorker(this)
         setupUI()

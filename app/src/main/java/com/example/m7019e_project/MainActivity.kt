@@ -66,13 +66,7 @@ class MainActivity : ComponentActivity() {
 
         WorkManager.getInstance(this).enqueue(workRequest)
 
-        // Initialize NetworkConnectionHandler
-        networkConnectionHandler = NetworkConnectionHandler(
-            context = this,
-            onNetworkAvailable = { isNetworkAvailable.value = true },
-            onNetworkLost = { isNetworkAvailable.value = false }
-        )
-        networkConnectionHandler.startListening()
+
 
 
         // Schedule periodic weather updates
@@ -83,7 +77,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        networkConnectionHandler.stopListening()
+
     }
 
     private fun setupUI() {
@@ -104,8 +98,7 @@ class MainActivity : ComponentActivity() {
                             composable("main") {
                                 MainScreen(
                                     navController,
-                                    detailScreenViewmodel,
-                                    isNetworkAvailable.value
+                                    detailScreenViewmodel
                                 )
                             }
                             composable("weather_detail") {
@@ -151,8 +144,7 @@ class MainActivity : ComponentActivity() {
                 }
                 MainScreen(
                     navController,
-                    detailScreenViewmodel,
-                    isNetworkAvailable.value
+                    detailScreenViewmodel
                 )
             } else {
                 Text(

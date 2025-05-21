@@ -47,7 +47,7 @@ fun MainScreen(
     navController: NavController,
     //weatherData: List<DailyWeather>,
     detailScreenViewmodel: DetailScreenViewmodel,
-    isNetworkAvailable: Boolean
+
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
@@ -57,15 +57,14 @@ fun MainScreen(
     var weatherData by remember { mutableStateOf<List<DailyWeather>>(emptyList()) }
     val locations = listOf("Luleå", "Stockholm", "Gothenburg", "Malmö")
     val weatherViewModel: WeatherViewModel = viewModel()
+    val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
 
-    LaunchedEffect(textState, isNetworkAvailable) {
-        val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
-        weatherData = if (isNetworkAvailable) {
-            weatherViewModel.getWeather(apiUrl)
 
-        } else {
-            weatherViewModel.getCachedWeather()
-        }
+    LaunchedEffect(textState) {
+
+
+        weatherViewModel.getWeather(apiUrl)
+
         println("Data: $weatherData")
     }
     Column(
@@ -138,15 +137,14 @@ fun MainBanner(
                     onClick = {
                         onTextStateChange(location)
                         onExpandedChange(false)
-                        onTextStateChange(location)
-                        onExpandedChange(false)
                         detailScreenViewmodel.selectedLocation.value = location
-                        runBlocking {
-                            val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(location)}&longitude=${getLongitude(location)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
-                            onWeatherDataChange(fetchAndTransformWeatherData(apiUrl))
-                        }
                     }
                 )
+
+                LaunchedEffect(textState) {
+                    val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+                    onWeatherDataChange(fetchAndTransformWeatherData(apiUrl))
+                }
             }
         }
     }

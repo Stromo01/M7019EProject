@@ -3,15 +3,13 @@ package com.example.m7019e_project
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.m7019e_project.ScreenReloadState.isDisconnected
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.example.m7019e_project.database.AppDatabase
 import com.example.m7019e_project.database.WeatherEntity
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
-//import com.example.m7019e.api.Movie
-//import com.example.m7019e.api.MovieResponse
 
 class WeatherViewModel(application: Application) : AndroidViewModel(application) {
     private val weatherDao = AppDatabase.getDatabase(application).weatherDao()
@@ -24,10 +22,11 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     suspend fun getWeather(apiUrl: String): List<DailyWeather> {
-        var weather = fetchAndTransformWeatherData(apiUrl)
-        if(weather.isEmpty()) {
+        var weather: List<DailyWeather>
+        if(isDisconnected.value) {
             weather = getCachedWeather()
         }else{
+            weather = fetchAndTransformWeatherData(apiUrl)
             cacheWeather(weather.mapIndexed { index, dailyWeather ->
                 WeatherEntity(
                     id = index,

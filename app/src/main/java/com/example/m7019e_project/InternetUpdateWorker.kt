@@ -17,6 +17,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 
 object ScreenReloadState {
     val shouldReload = mutableStateOf(false)
+    val isDisconnected = mutableStateOf(false)
 }
 
 class NetworkChangeReceiver : BroadcastReceiver() {
@@ -48,9 +49,8 @@ class disconnectWorker(
 
     override suspend fun doWork(): Result {
         Log.d("disconnectWorker", "Network is disconnected, saving state")
-        val sharedPreferences = applicationContext.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
-        sharedPreferences.edit()
-            .apply()
+        ScreenReloadState.isDisconnected.value = true
+        ScreenReloadState.shouldReload.value = false
         return Result.success()
     }
 }
@@ -63,6 +63,7 @@ class connectWorker(
     override suspend fun doWork(): Result {
         Log.d("connectWorker", "Network is connected, reloading screen")
         ScreenReloadState.shouldReload.value = true
+        ScreenReloadState.isDisconnected.value = false
         return Result.success()
     }
 }

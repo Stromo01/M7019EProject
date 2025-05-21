@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.example.m7019e_project.ScreenReloadState.isDisconnected
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import com.example.m7019e_project.viewmodels.SharedLocationViewModel
 import kotlinx.coroutines.runBlocking
@@ -85,7 +86,7 @@ fun MainScreen(
             onWeatherDataChange = { weatherData = it },
             detailScreenViewmodel = detailScreenViewmodel
         )
-        if (weatherData.isEmpty()) {
+        if (weatherData.isEmpty() || isDisconnected.value) {
             Text("No weather data available", color = Color.White)
         } else {
             DisplayWeather(weatherData, navController, detailScreenViewmodel)

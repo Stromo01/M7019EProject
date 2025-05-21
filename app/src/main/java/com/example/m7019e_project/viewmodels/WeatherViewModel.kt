@@ -26,6 +26,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         if(isDisconnected.value) {
             weather = getCachedWeather()
         }else{
+            clearCache()
             weather = fetchAndTransformWeatherData(apiUrl)
             cacheWeather(weather.mapIndexed { index, dailyWeather ->
                 WeatherEntity(

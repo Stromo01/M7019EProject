@@ -86,7 +86,7 @@ fun MainScreen(
             onWeatherDataChange = { weatherData = it },
             detailScreenViewmodel = detailScreenViewmodel
         )
-        if (weatherData.isEmpty() || isDisconnected.value) {
+        if (weatherData.isEmpty()) {
             Text("No weather data available", color = Color.White)
         } else {
             DisplayWeather(weatherData, navController, detailScreenViewmodel)
@@ -133,20 +133,33 @@ fun MainBanner(
             expanded = expanded,
             onDismissRequest = { onExpandedChange(false) }
         ) {
-            locations.forEach { location ->
-                DropdownMenuItem(
-                    text = { Text(location) },
-                    onClick = {
-                        onTextStateChange(location)
-                        onExpandedChange(false)
-                        detailScreenViewmodel.selectedLocation.value = location
-                    }
-                )
+            if(!isDisconnected.value) {
+                locations.forEach { location ->
+                    DropdownMenuItem(
+                        text = { Text(location) },
+                        onClick = {
 
-                LaunchedEffect(textState) {
-                    val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
-                    onWeatherDataChange(fetchAndTransformWeatherData(apiUrl))
+                                onTextStateChange(location)
+                                onExpandedChange(false)
+                                detailScreenViewmodel.selectedLocation.value = location
+
+
+                        }
+                    )
+
+                    LaunchedEffect(textState) {
+                        val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+                        onWeatherDataChange(fetchAndTransformWeatherData(apiUrl))
+                    }
                 }
+            }
+            else {
+                Text(
+                    text = "No internet connection",
+                    color = Color.Red,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(8.dp)
+                )
             }
         }
     }

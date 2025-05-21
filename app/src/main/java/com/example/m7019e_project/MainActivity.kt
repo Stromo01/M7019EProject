@@ -42,6 +42,7 @@ import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
 import androidx.work.Constraints
+import com.example.m7019e_project.viewmodels.SharedLocationViewModel
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
@@ -84,6 +85,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val weatherViewModel: WeatherViewModel = viewModel()
             val navController = rememberNavController()
+            val sharedLocationViewModel: SharedLocationViewModel = viewModel()
             val weatherData = runBlocking {
                 val apiUrl =
                     "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"
@@ -97,7 +99,8 @@ class MainActivity : ComponentActivity() {
                             composable("main") {
                                 MainScreen(
                                     navController,
-                                    detailScreenViewmodel
+                                    detailScreenViewmodel,
+                                    sharedLocationViewModel
                                 )
                             }
                             composable("weather_detail") {
@@ -110,7 +113,8 @@ class MainActivity : ComponentActivity() {
                                 NoInternetScreen(
                                     viewModel = weatherViewModel,
                                     navController = navController,
-                                    detailScreenViewmodel = detailScreenViewmodel
+                                    detailScreenViewmodel = detailScreenViewmodel,
+                                    sharedLocationViewModel = sharedLocationViewModel
                                 )
                             }
                         }

@@ -40,6 +40,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
+import com.example.m7019e_project.viewmodels.SharedLocationViewModel
 import kotlinx.coroutines.runBlocking
 
 @Composable
@@ -47,12 +48,13 @@ fun MainScreen(
     navController: NavController,
     //weatherData: List<DailyWeather>,
     detailScreenViewmodel: DetailScreenViewmodel,
+    sharedLocationViewModel: SharedLocationViewModel
 
 ) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
     val currentTime = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))
-    var textState by remember { mutableStateOf("Luleå") }
+    var textState by sharedLocationViewModel.selectedCity
     var expanded by remember { mutableStateOf(false) }
     var weatherData by remember { mutableStateOf<List<DailyWeather>>(emptyList()) }
     val locations = listOf("Luleå", "Stockholm", "Gothenburg", "Malmö")

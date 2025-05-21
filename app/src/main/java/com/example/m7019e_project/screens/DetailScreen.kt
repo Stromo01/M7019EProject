@@ -59,29 +59,30 @@ fun Banner(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(){
-
-
-            Text(
-                text = location,
-                fontSize = 28.sp,
-                color = Color.White,
-                textAlign = TextAlign.Center
-            )
+                Text(
+                    text = location,
+                    fontSize = 28.sp,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
                 if(date!=""){
-            Text(
-                text = date,
-                fontSize = 28.sp,
-                color = Color.White,
-                textAlign = TextAlign.Center
-            )}
+                    Text(
+                        text = date,
+                        fontSize = 28.sp,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
-            Button(
-                onClick = {
-                    nav.navigate("video")
-                },
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(text = "Webcams")
+            if(date!=""){
+                Button(
+                    onClick = {
+                        nav.navigate("video")
+                    },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(text = "Webcams")
+                }
             }
         }
     }

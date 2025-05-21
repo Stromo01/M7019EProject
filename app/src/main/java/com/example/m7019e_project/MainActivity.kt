@@ -106,6 +106,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val weatherViewModel: WeatherViewModel = viewModel()
             val navController = rememberNavController()
+            val sharedLocationViewModel: SharedLocationViewModel = viewModel()
             val weatherData = runBlocking {
                 val apiUrl =
                     "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"

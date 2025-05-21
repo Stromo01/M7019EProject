@@ -61,9 +61,13 @@ fun MainScreen(
 
 
     LaunchedEffect(textState) {
+        if(internet){
+            weatherViewModel.getWeather(apiUrl)
+        }
+        else{
+            weatherViewModel.getCachedWeather()
+        }
 
-
-        weatherViewModel.getWeather(apiUrl)
 
         println("Data: $weatherData")
     }
@@ -140,7 +144,6 @@ fun MainBanner(
                         detailScreenViewmodel.selectedLocation.value = location
                     }
                 )
-
                 LaunchedEffect(textState) {
                     val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
                     onWeatherDataChange(fetchAndTransformWeatherData(apiUrl))

@@ -38,35 +38,39 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
+
 import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
 import androidx.work.Constraints
 
 class MainActivity : ComponentActivity() {
-
-    private var isNetworkAvailable = mutableStateOf(true)
-
-
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED) // No network required
+
+        // Worker with no network required
+        val noNetworkConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
             .build()
 
-        val workRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
-            .setConstraints(constraints)
+        val noNetworkWorkRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
+            .setConstraints(noNetworkConstraints)
             .build()
 
-        WorkManager.getInstance(this).enqueue(workRequest)
+        WorkManager.getInstance(this).enqueue(noNetworkWorkRequest)
 
+        // Worker with network required
+        val networkRequiredConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
 
+        val networkRequiredWorkRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
+            .setConstraints(networkRequiredConstraints)
+            .build()
 
-
-        // Schedule periodic weather updates
+        WorkManager.getInstance(this).enqueue(networkRequiredWorkRequest)
         scheduleWeatherUpdates(this)
-
         setupUI()
     }
 
@@ -112,50 +116,6 @@ class MainActivity : ComponentActivity() {
                         }
                 }
             }
-        }
-    }
-
-    @Composable
-    fun NoInternetScreen(
-        viewModel: WeatherViewModel,
-        navController: NavController,
-        detailScreenViewmodel: DetailScreenViewmodel
-    ) {
-        var cachedWeather by remember { mutableStateOf(emptyList<DailyWeather>()) }
-
-        LaunchedEffect(Unit) {
-            cachedWeather = viewModel.getCachedWeather()
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (cachedWeather.isNotEmpty()) {
-                navController.navigate("main") {
-                    popUpTo("main") { inclusive = true }
-                }
-                MainScreen(
-                    navController,
-                    detailScreenViewmodel
-                )
-            } else {
-                Text(
-                    text = "No Internet Connection",
-                    fontSize = 24.sp,
-                    color = Color.Red,
-                    textAlign = TextAlign.Center
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.no_wifi),
-                    contentDescription = "No cached movies",
-                    tint = Color.Gray,
-                    modifier = Modifier.fillMaxSize(0.3f)
-                )
-            }
-
         }
     }
 }

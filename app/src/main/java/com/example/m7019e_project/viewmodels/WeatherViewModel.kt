@@ -1,12 +1,12 @@
 package com.example.m7019e_project
 
 import android.app.Application
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import androidx.lifecycle.MutableLiveData
+import com.example.m7019e_project.database.AppDatabase
+import com.example.m7019e_project.database.WeatherEntity
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 

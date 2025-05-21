@@ -59,14 +59,11 @@ fun MainScreen(
     val weatherViewModel: WeatherViewModel = viewModel()
     val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
 
-
-    LaunchedEffect(textState) {
-
-
-        weatherViewModel.getWeather(apiUrl)
-
-        println("Data: $weatherData")
+    runBlocking {
+        weatherData =  weatherViewModel.getWeather(apiUrl)
     }
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()

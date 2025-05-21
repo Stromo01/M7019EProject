@@ -48,7 +48,6 @@ import com.example.m7019e_project.WeatherUpdateWorker
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var networkConnectionHandler: NetworkConnectionHandler
     private var isNetworkAvailable = mutableStateOf(true)
 
 

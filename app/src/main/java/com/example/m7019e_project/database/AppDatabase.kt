@@ -1,4 +1,4 @@
-package com.example.m7019e_project
+package com.example.m7019e_project.database
 
 
 import android.content.Context

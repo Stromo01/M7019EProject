@@ -42,10 +42,6 @@ import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
 import androidx.work.Constraints
 
-import com.example.m7019e_project.WeatherUpdateWorker
-
-//import com.example.m7019e_project.NetworkConnectionHandler
-
 class MainActivity : ComponentActivity() {
 
     private var isNetworkAvailable = mutableStateOf(true)

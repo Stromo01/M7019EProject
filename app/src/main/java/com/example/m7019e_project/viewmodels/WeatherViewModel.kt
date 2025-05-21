@@ -16,13 +16,6 @@ import kotlinx.serialization.json.Json
 class WeatherViewModel(application: Application) : AndroidViewModel(application) {
     private val weatherDao = AppDatabase.getDatabase(application).weatherDao()
 
-    //var selectedMovie = mutableStateOf<Movie?>(null)
-      //  private set
-
-    //fun selectMovie(movie: Movie) {
-    //    selectedMovie.value = movie
-   // }
-
     fun cacheWeather(weatherList: List<WeatherEntity>) {
         viewModelScope.launch(Dispatchers.IO) {
             weatherList.forEach { weather ->
@@ -31,9 +24,10 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         }
     }
     suspend fun getWeather(apiUrl: String): List<DailyWeather> {
-        return try {
-            val weather = fetchAndTransformWeatherData(apiUrl)
-
+        var weather = fetchAndTransformWeatherData(apiUrl)
+        if(weather.isEmpty()) {
+            weather = getCachedWeather()
+        }else{
             cacheWeather(weather.mapIndexed { index, dailyWeather ->
                 WeatherEntity(
                     id = index,
@@ -42,13 +36,10 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     timeData = Json.encodeToString(dailyWeather.timeData)
                 )
             })
-            println("return: $weather")
-            weather
 
-        } catch (e: Exception) {
-            println("Error fetching weather data: ${e.message}")
-            getCachedWeather();
+            println("Fetched and cached weather: $weather")
         }
+        return weather
     }
 
     suspend fun getCachedWeather(): List<DailyWeather> {

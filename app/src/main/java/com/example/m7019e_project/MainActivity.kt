@@ -1,7 +1,9 @@
 package com.example.m7019e_project
 
 import android.annotation.SuppressLint
+import android.content.IntentFilter
 import android.media.tv.TvContract.Channels.Logo
+import android.net.ConnectivityManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -46,15 +48,17 @@ import androidx.work.ExistingWorkPolicy
 import com.example.m7019e_project.viewmodels.SharedLocationViewModel
 
 class MainActivity : ComponentActivity() {
+    private lateinit var networkReceiver: NetworkChangeReceiver
+
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WorkManager.getInstance(this).cancelAllWork()
+        networkReceiver = NetworkChangeReceiver()
+        val intentFilter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        registerReceiver(networkReceiver, intentFilter)
 
 
-
-        scheduleConnectWorker(this)
-        scheduleDisconnectWorker(this)
         setupUI()
     }
 

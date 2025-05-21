@@ -1,7 +1,10 @@
 package com.example.m7019e_project
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.PeriodicWorkRequestBuilder
@@ -11,6 +14,7 @@ import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.mutableStateOf
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 
@@ -18,6 +22,27 @@ object ScreenReloadState {
     val shouldReload = mutableStateOf(false)
 }
 
+class NetworkChangeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent?) {
+        Log.d("NetworkChangeReceiver", "Network state changed")
+        val connectivityManager =
+            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = connectivityManager.activeNetwork
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+
+        if (networkCapabilities != null &&
+            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        ) {
+            // Network is connected
+            Log.d("NetworkChangeReceiver", "Network is connected")
+            scheduleConnectWorker(context)
+        } else {
+            // Network is disconnected
+            Log.d("NetworkChangeReceiver", "Network is disconnected")
+            scheduleDisconnectWorker(context)
+        }
+    }
+}
 
 class disconnectWorker(
     context: Context,
@@ -50,14 +75,13 @@ fun scheduleConnectWorker(context: Context) {
         .setRequiredNetworkType(NetworkType.CONNECTED)
         .build()
 
-    val workRequest = PeriodicWorkRequestBuilder<connectWorker>(15, TimeUnit.SECONDS)
+    val workRequest = OneTimeWorkRequestBuilder<connectWorker>()
         .setConstraints(networkRequiredConstraints)
         .build()
 
-
-    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+    WorkManager.getInstance(context).enqueueUniqueWork(
         "connectWorker",
-        ExistingPeriodicWorkPolicy.UPDATE, // Ensures only one periodic worker runs
+        ExistingWorkPolicy.REPLACE,
         workRequest
     )
 }
@@ -67,13 +91,13 @@ fun scheduleDisconnectWorker(context: Context) {
         .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
         .build()
 
-    val workRequest = PeriodicWorkRequestBuilder<disconnectWorker>(15, TimeUnit.SECONDS)
+    val workRequest = OneTimeWorkRequestBuilder<disconnectWorker>()
         .setConstraints(noNetworkConstraints)
         .build()
 
-    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+    WorkManager.getInstance(context).enqueueUniqueWork(
         "disconnectWorker",
-        ExistingPeriodicWorkPolicy.UPDATE, // Ensures only one periodic worker runs
+        ExistingWorkPolicy.REPLACE,
         workRequest
     )
 }

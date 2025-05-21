@@ -42,6 +42,7 @@ import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
 import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
@@ -51,14 +52,23 @@ class MainActivity : ComponentActivity() {
 
         // Worker with no network required
         val noNetworkConstraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED) // Fixed invalid NetworkType
             .build()
 
         val noNetworkWorkRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
             .setConstraints(noNetworkConstraints)
+            .setInputData(
+                androidx.work.Data.Builder()
+                    .putString("constraintType", "NOT_REQUIRED") // Pass correct constraintType
+                    .build()
+            )
             .build()
 
-        WorkManager.getInstance(this).enqueue(noNetworkWorkRequest)
+        WorkManager.getInstance(this).enqueueUniqueWork(
+            "NoNetworkWorker",
+            ExistingWorkPolicy.KEEP, // Ensures only one instance of this worker runs
+            noNetworkWorkRequest
+        )
 
         // Worker with network required
         val networkRequiredConstraints = Constraints.Builder()
@@ -67,9 +77,20 @@ class MainActivity : ComponentActivity() {
 
         val networkRequiredWorkRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
             .setConstraints(networkRequiredConstraints)
+            .setInputData(
+                androidx.work.Data.Builder()
+                    .putString("constraintType", "CONNECTED") // Pass correct constraintType
+                    .build()
+            )
             .build()
 
-        WorkManager.getInstance(this).enqueue(networkRequiredWorkRequest)
+        WorkManager.getInstance(this).enqueueUniqueWork(
+            "NetworkRequiredWorker",
+            ExistingWorkPolicy.KEEP, // Ensures only one instance of this worker runs
+            networkRequiredWorkRequest
+        )
+
+
         scheduleWeatherUpdates(this)
         setupUI()
     }

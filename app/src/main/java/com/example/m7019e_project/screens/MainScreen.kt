@@ -49,6 +49,20 @@ fun MainScreen(
     detailScreenViewmodel: DetailScreenViewmodel,
 
 ) {
+
+    val shouldReload by ScreenReloadState.shouldReload
+
+    if (shouldReload) {
+        // Reset the state to avoid repeated reloads
+        ScreenReloadState.shouldReload.value = false
+
+        // Reload the screen (e.g., fetch new data or recompose)
+        LaunchedEffect(Unit) {
+            val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude("Luleå")}&longitude=${getLongitude("Luleå")}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+            val weatherData = fetchAndTransformWeatherData(apiUrl)
+            // Update your UI state with the new data
+        }
+    }
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("WeatherPrefs", Context.MODE_PRIVATE)
     val currentTime = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))

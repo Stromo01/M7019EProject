@@ -34,9 +34,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
+import androidx.work.Constraints
+
+import com.example.m7019e_project.WeatherUpdateWorker
 
 //import com.example.m7019e_project.NetworkConnectionHandler
 
@@ -49,6 +55,16 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED) // No network required
+            .build()
+
+        val workRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueue(workRequest)
 
         // Initialize NetworkConnectionHandler
         networkConnectionHandler = NetworkConnectionHandler(
@@ -83,7 +99,7 @@ class MainActivity : ComponentActivity() {
             val detailScreenViewmodel = DetailScreenViewmodel()
             M7019EProjectTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    if (isNetworkAvailable.value) {
+
                         NavHost(navController = navController, startDestination = "main") {
                             composable("main") {
                                 MainScreen(
@@ -98,10 +114,14 @@ class MainActivity : ComponentActivity() {
                             composable("video") {
                                 VideoScreen(navController, detailScreenViewmodel)
                             }
+                            composable("noInternetScreen") {
+                                NoInternetScreen(
+                                    viewModel = weatherViewModel,
+                                    navController = navController,
+                                    detailScreenViewmodel = detailScreenViewmodel
+                                )
+                            }
                         }
-                    } else {
-                        NoInternetScreen(viewModel = weatherViewModel)
-                    }
                 }
             }
         }
@@ -109,7 +129,9 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun NoInternetScreen(
-        viewModel: WeatherViewModel
+        viewModel: WeatherViewModel,
+        navController: NavController,
+        detailScreenViewmodel: DetailScreenViewmodel
     ) {
         var cachedWeather by remember { mutableStateOf(emptyList<DailyWeather>()) }
 
@@ -119,16 +141,18 @@ class MainActivity : ComponentActivity() {
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (cachedWeather.isNotEmpty()) {
-                DisplayWeather(
-                    weatherData = cachedWeather,
-                    navController = rememberNavController(),
-                    detailScreenViewmodel = DetailScreenViewmodel()
+                navController.navigate("main") {
+                    popUpTo("main") { inclusive = true }
+                }
+                MainScreen(
+                    navController,
+                    detailScreenViewmodel,
+                    isNetworkAvailable.value
                 )
             } else {
                 Text(

@@ -2,6 +2,7 @@ package com.example.m7019e_project
 
 import android.content.Context
 import android.util.Log
+import androidx.navigation.NavController
 import androidx.work.CoroutineWorker
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkerParameters
@@ -9,27 +10,21 @@ import androidx.work.WorkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
-import com.example.m7019e_project.fetchAndTransformWeatherData
 import com.example.m7019e_project.MainActivity
 
 class WeatherUpdateWorker(
     context: Context,
-    workerParams: WorkerParameters
+    workerParams: WorkerParameters,
+    navController: NavController
 ) : CoroutineWorker(context, workerParams) {
+
 
     override suspend fun doWork(): Result {
         return try {
-            val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m"
-            Log.d("WeatherUpdateWorker", "Fetching weather data from $apiUrl")
-            val weatherData = fetchWeatherData(apiUrl)
-            val currentTime = System.currentTimeMillis() // Get the current timestamp
-            val formattedTime = java.text.SimpleDateFormat("HH:mm:ss").format(java.util.Date(currentTime)) // Format the timestamp
-            Log.d("WeatherUpdateWorker", "Weather data fetched successfully: $weatherData")
-            saveWeatherDataToPreferences(weatherData.toString(), formattedTime) // Pass the formatted time
-            Log.d("WeatherUpdateWorker", "Weather data saved to SharedPreferences")
+            navController.navigate("noInternetScreen")
             Result.success()
         } catch (e: Exception) {
-            Log.e("WeatherUpdateWorker", "Error in doWork", e)
+
             Result.retry()
         }
     }

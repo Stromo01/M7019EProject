@@ -45,7 +45,7 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun MainScreen(
     navController: NavController,
-    weatherData: List<DailyWeather>,
+    //weatherData: List<DailyWeather>,
     detailScreenViewmodel: DetailScreenViewmodel,
     isNetworkAvailable: Boolean
 ) {
@@ -54,18 +54,19 @@ fun MainScreen(
     val currentTime = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss"))
     var textState by remember { mutableStateOf("Luleå") }
     var expanded by remember { mutableStateOf(false) }
-    var weatherDataState by remember { mutableStateOf(weatherData) }
+    var weatherData by remember { mutableStateOf<List<DailyWeather>>(emptyList()) }
     val locations = listOf("Luleå", "Stockholm", "Gothenburg", "Malmö")
     val weatherViewModel: WeatherViewModel = viewModel()
 
-    LaunchedEffect(isNetworkAvailable) {
-        val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"
-        if(isNetworkAvailable == true){
-            weatherViewModel.clearCache();
-            weatherDataState = weatherViewModel.getWeather(apiUrl)
-        }else{
-            weatherDataState = weatherViewModel.getCachedWeather()
+    LaunchedEffect(textState, isNetworkAvailable) {
+        val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=${getLatitude(textState)}&longitude=${getLongitude(textState)}&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+        weatherData = if (isNetworkAvailable) {
+            weatherViewModel.getWeather(apiUrl)
+
+        } else {
+            weatherViewModel.getCachedWeather()
         }
+        println("Data: $weatherData")
     }
     Column(
         modifier = Modifier
@@ -81,10 +82,14 @@ fun MainScreen(
             onTextStateChange = { textState = it },
             locations = locations,
             navController = navController,
-            onWeatherDataChange = { weatherDataState = it },
+            onWeatherDataChange = { weatherData = it },
             detailScreenViewmodel = detailScreenViewmodel
         )
-        DisplayWeather(weatherDataState, navController, detailScreenViewmodel)
+        if (weatherData.isEmpty()) {
+            Text("No weather data available", color = Color.White)
+        } else {
+            DisplayWeather(weatherData, navController, detailScreenViewmodel)
+        }
     }
 }
 

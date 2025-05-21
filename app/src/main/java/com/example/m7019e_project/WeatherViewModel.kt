@@ -33,6 +33,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     suspend fun getWeather(apiUrl: String): List<DailyWeather> {
         return try {
             val weather = fetchAndTransformWeatherData(apiUrl)
+
             cacheWeather(weather.mapIndexed { index, dailyWeather ->
                 WeatherEntity(
                     id = index,
@@ -41,8 +42,11 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
                     timeData = Json.encodeToString(dailyWeather.timeData)
                 )
             })
+            println("return: $weather")
             weather
+
         } catch (e: Exception) {
+            println("Error fetching weather data: ${e.message}")
             getCachedWeather();
         }
     }

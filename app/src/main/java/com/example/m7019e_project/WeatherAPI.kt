@@ -10,6 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import java.io.IOException
+import java.nio.channels.UnresolvedAddressException
 
 data class DailyWeather(
     val id: Int,
@@ -17,7 +19,7 @@ data class DailyWeather(
     val date: String,
     val timeData: List<TimestampWeather>
 )
-
+@Serializable
 data class TimestampWeather(
     val time: String,
     val temperature: Float,
@@ -52,27 +54,35 @@ suspend fun fetchAndTransformWeatherData(apiUrl: String): List<DailyWeather> {
     }
 
     return withContext(Dispatchers.IO) {
-        val response: WeatherApiResponse = client.get(apiUrl).body()
-        val groupedData = response.hourly.time.indices.groupBy { index ->
-            response.hourly.time[index].substring(0, 10) // Group by date (e.g., "2025-05-02")
-        }
+        try {
+            val response: WeatherApiResponse = client.get(apiUrl).body()
+            val groupedData = response.hourly.time.indices.groupBy { index ->
+                response.hourly.time[index].substring(0, 10)
+            }
 
-        groupedData.map { (date, indices) ->
-            DailyWeather(
-                id = date.hashCode(),
-                location = "${response.latitude}, ${response.longitude}",
-                date = date,
-                timeData = indices.map { index ->
-                    TimestampWeather(
-                        time = response.hourly.time[index].substring(11), // Extract time (e.g., "08:00")
-                        temperature = response.hourly.temperature_2m[index],
-                        windSpeed = response.hourly.wind_speed_10m[index],
-                        humidity = 0f, // Humidity is not provided in the API response
-                        pressure = 0f, // Pressure is not provided in the API response
-                        description = "Cloud Cover: ${response.hourly.cloud_cover[index]}%"
-                    )
-                }
-            )
+            groupedData.map { (date, indices) ->
+                DailyWeather(
+                    id = date.hashCode(),
+                    location = "${response.latitude}, ${response.longitude}",
+                    date = date,
+                    timeData = indices.map { index ->
+                        TimestampWeather(
+                            time = response.hourly.time[index].substring(11),
+                            temperature = response.hourly.temperature_2m[index],
+                            windSpeed = response.hourly.wind_speed_10m[index],
+                            humidity = 0f,
+                            pressure = 0f,
+                            description = "Cloud Cover: ${response.hourly.cloud_cover[index]}%"
+                        )
+                    }
+                )
+            }
+        } catch (e: UnresolvedAddressException) {
+            println("Network error: ${e.message}")
+            emptyList()
+        } catch (e: IOException) {
+            println("Network error: ${e.message}")
+            emptyList()
         }
     }
 }

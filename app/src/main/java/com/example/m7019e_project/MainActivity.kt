@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,13 +37,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
 import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
+
 //import com.example.m7019e_project.NetworkConnectionHandler
 
 class MainActivity : ComponentActivity() {
 
     private lateinit var networkConnectionHandler: NetworkConnectionHandler
     private var isNetworkAvailable = mutableStateOf(true)
-
 
 
     @SuppressLint("UnrememberedMutableState")
@@ -63,6 +64,7 @@ class MainActivity : ComponentActivity() {
 
         setupUI()
     }
+
     override fun onDestroy() {
         super.onDestroy()
         networkConnectionHandler.stopListening()
@@ -71,18 +73,24 @@ class MainActivity : ComponentActivity() {
     private fun setupUI() {
         enableEdgeToEdge()
         setContent {
+            val weatherViewModel: WeatherViewModel = viewModel()
             val navController = rememberNavController()
             val weatherData = runBlocking {
-                val apiUrl = "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"
+                val apiUrl =
+                    "https://api.open-meteo.com/v1/forecast?latitude=65.5841&longitude=22.1547&hourly=temperature_2m,wind_speed_10m,cloud_cover"
                 fetchAndTransformWeatherData(apiUrl)
             }
             val detailScreenViewmodel = DetailScreenViewmodel()
             M7019EProjectTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    if (isNetworkAvailable.value){
+                    if (isNetworkAvailable.value) {
                         NavHost(navController = navController, startDestination = "main") {
                             composable("main") {
-                                MainScreen(navController, weatherData, detailScreenViewmodel,isNetworkAvailable.value)
+                                MainScreen(
+                                    navController,
+                                    detailScreenViewmodel,
+                                    isNetworkAvailable.value
+                                )
                             }
                             composable("weather_detail") {
                                 DetailScreen(navController, detailScreenViewmodel)
@@ -91,16 +99,24 @@ class MainActivity : ComponentActivity() {
                                 VideoScreen(navController, detailScreenViewmodel)
                             }
                         }
-                    }
-                    else{
-                        NoInternetScreen()
+                    } else {
+                        NoInternetScreen(viewModel = weatherViewModel)
                     }
                 }
             }
         }
     }
+
     @Composable
-    fun NoInternetScreen(){
+    fun NoInternetScreen(
+        viewModel: WeatherViewModel
+    ) {
+        var cachedWeather by remember { mutableStateOf(emptyList<DailyWeather>()) }
+
+        LaunchedEffect(Unit) {
+            cachedWeather = viewModel.getCachedWeather()
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -108,24 +124,30 @@ class MainActivity : ComponentActivity() {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "No Internet Connection",
-                fontSize = 24.sp,
-                color = Color.Red,
-                textAlign = TextAlign.Center
-            )
-            Icon(
+            if (cachedWeather.isNotEmpty()) {
+                DisplayWeather(
+                    weatherData = cachedWeather,
+                    navController = rememberNavController(),
+                    detailScreenViewmodel = DetailScreenViewmodel()
+                )
+            } else {
+                Text(
+                    text = "No Internet Connection",
+                    fontSize = 24.sp,
+                    color = Color.Red,
+                    textAlign = TextAlign.Center
+                )
+                Icon(
                     painter = painterResource(id = R.drawable.no_wifi),
                     contentDescription = "No cached movies",
                     tint = Color.Gray,
                     modifier = Modifier.fillMaxSize(0.3f)
                 )
             }
+
+        }
     }
 }
-
-
-
 
 
 @Composable

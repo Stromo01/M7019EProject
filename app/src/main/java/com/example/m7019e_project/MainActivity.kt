@@ -43,6 +43,7 @@ import com.example.m7019e_project.ui.theme.M7019EProjectTheme
 import kotlinx.coroutines.runBlocking
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
+import com.example.m7019e_project.viewmodels.SharedLocationViewModel
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("UnrememberedMutableState")
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
 
         // Worker with no network required
         val noNetworkConstraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.NOT_REQUIRED) // Fixed invalid NetworkType
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
             .build()
 
         val noNetworkWorkRequest = OneTimeWorkRequestBuilder<WeatherUpdateWorker>()
@@ -90,7 +91,7 @@ class MainActivity : ComponentActivity() {
             networkRequiredWorkRequest
         )
 
-
+        WorkManager.getInstance(this).enqueue(networkRequiredWorkRequest)
         scheduleWeatherUpdates(this)
         setupUI()
     }
@@ -118,7 +119,8 @@ class MainActivity : ComponentActivity() {
                             composable("main") {
                                 MainScreen(
                                     navController,
-                                    detailScreenViewmodel
+                                    detailScreenViewmodel,
+                                    sharedLocationViewModel
                                 )
                             }
                             composable("weather_detail") {
@@ -131,7 +133,8 @@ class MainActivity : ComponentActivity() {
                                 NoInternetScreen(
                                     viewModel = weatherViewModel,
                                     navController = navController,
-                                    detailScreenViewmodel = detailScreenViewmodel
+                                    detailScreenViewmodel = detailScreenViewmodel,
+                                    sharedLocationViewModel = sharedLocationViewModel
                                 )
                             }
                         }

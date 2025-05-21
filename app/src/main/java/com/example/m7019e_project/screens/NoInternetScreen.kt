@@ -23,12 +23,14 @@ import com.example.m7019e_project.MainScreen
 import com.example.m7019e_project.R
 import com.example.m7019e_project.WeatherViewModel
 import com.example.m7019e_project.ui.theme.DetailScreenViewmodel
+import com.example.m7019e_project.viewmodels.SharedLocationViewModel
 
 @Composable
 fun NoInternetScreen(
     viewModel: WeatherViewModel,
     navController: NavController,
-    detailScreenViewmodel: DetailScreenViewmodel
+    detailScreenViewmodel: DetailScreenViewmodel,
+    sharedLocationViewModel: SharedLocationViewModel
 ) {
     var cachedWeather by remember { mutableStateOf(emptyList<DailyWeather>()) }
 
@@ -48,7 +50,8 @@ fun NoInternetScreen(
             }
             MainScreen(
                 navController,
-                detailScreenViewmodel
+                detailScreenViewmodel,
+                sharedLocationViewModel,
             )
         } else {
             Text(
